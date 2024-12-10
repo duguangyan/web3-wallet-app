@@ -85,8 +85,8 @@ const confirmMn = async () => {
 <template>
    <div>
         <van-space>
-            <van-button type="primary" @click="createWallet">创建钱包</van-button>
-            <van-button type="primary">导入钱包</van-button>
+            <van-button type="primary" size="mini" @click="createWallet">创建钱包</van-button>
+            <van-button type="primary" size="mini">导入钱包</van-button>
         </van-space>
         
         <van-dialog v-model:show="show" title="请输入密码" show-cancel-button @confirm="confirmPassword">

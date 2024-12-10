@@ -2,6 +2,7 @@
 import { ref, defineProps, computed } from 'vue'
 import Web3 from "web3";
 import ethwallet, { hdkey}  from 'ethereumjs-wallet'
+import Tx from "ethereumjs-tx";
 const props = defineProps(['walletInfo'])
 const web3 = new Web3(Web3.givenProvider || 'https://linea-sepolia.infura.io/v3/638355f30f124b0daf4131933304abd0');
 console.log(props.walletInfo)
@@ -9,8 +10,10 @@ console.log(props.walletInfo)
 let show = ref(false)
 
 let password = ref("")
+let toaddress = ref("")
 let keystore = ref('')
 let fromaddress = ref('')
+let number = ref('0.001')
 
 const walletInfoFilter = computed(()=>{
     props.walletInfo.filter(async (item) => {
@@ -25,18 +28,17 @@ const walletInfoFilter = computed(()=>{
 
 // 转账
 const send = async (keystore,pass) => {
-
+    console.log('=========',keystore)
+    console.log('=========',pass)
     let walletobj;
-
     try {
         walletobj = await ethwallet.fromV3(keystore, pass)
     } catch (error) {
-        alert("密码错误")
+        console.log("密码错误",error)
         return
     }
     let key = walletobj.getPrivateKey().toString('hex')
-
-    var privateKey = new Buffer(key, 'hex')
+    var privateKey = Buffer(key, 'hex')
 
     // 1.构建转账参数
     // 获取转账次数
@@ -47,12 +49,12 @@ const send = async (keystore,pass) => {
     console.log('gasPrice',gasPrice)
 
     // 转账金额： 以wei作为单位
-    const value = web3.utils.toWei('0.0001', 'ether')
+    const value = web3.utils.toWei(number.value, 'ether')
     console.log('value',value)
     // 构建转账对象
     const rawTx = {
         from: fromaddress.value,
-        to:"0xCA685B7805CCF8d8335DC26adA43D24eC85a4Fbf",
+        to: toaddress.value,
         nonce,
         gasPrice,
         value,
@@ -63,7 +65,7 @@ const send = async (keystore,pass) => {
 
     // 2.生成serializedTx
     // 转为私钥
-    const pKey = Buffer.from(privateKey.value, 'hex')
+    const pKey = Buffer(key, 'hex')
 
     console.log("pKey", pKey)
     // gas 估算
@@ -107,11 +109,8 @@ const getPassword = (keyStore,address) => {
 }
 
 const confirmPassword = async() => {
-    
-    console.log("keystore",keystore.value)
-    console.log("password",password.value)
-    password.value = ''
     send(keystore.value,password.value)
+    password.value = ''
 }
 
 </script>
@@ -124,8 +123,10 @@ const confirmPassword = async() => {
        </van-cell>
 
        <van-dialog v-model:show="show" title="请输入密码" show-cancel-button @confirm="confirmPassword">
-            <van-cell-group>
+            <van-cell-group> 
                 <van-field label="密码:" type="password" v-model="password" placeholder="请输入" />
+                <van-field label="转入账户:" v-model="toaddress" placeholder="请输入" />
+                <van-field label="金额:" v-model="number" placeholder="请输入" />
             </van-cell-group>
         </van-dialog>
 
